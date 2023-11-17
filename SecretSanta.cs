@@ -113,8 +113,9 @@ class SecretSanta
 
     static void WriteAssignments(Dictionary<string, string> assignments, string path)
     {
+        int maxLength = assignments.Keys.Max(key => key.Length);
         using StreamWriter sW = new(path, true);
         sW.WriteLine($"\nGenerated on {DateTime.Now.ToString("MMMM d, yyyy 'at' h:mm tt")}\n");
-        sW.WriteLine($"\t{string.Join("\n\t", assignments.Select(kvp => $"{kvp.Key.PadRight(8)}-> {kvp.Value}"))}");
+        sW.WriteLine($"\t{string.Join("\n\t", assignments.Select(kvp => $"{kvp.Key.PadRight(maxLength + 1)}-> {kvp.Value}"))}");
     }
 }
