@@ -7,14 +7,44 @@ class SecretSanta
         string namesFile = "names.txt";
         string previousAssignmentsFile = "assignments.txt";
 
-        Console.WriteLine("Check previous assignments: ");
-        bool checkPreviousAssignments = bool.Parse(Console.ReadLine() ?? "");
+        bool check = true, swaps = true;
 
-        Console.WriteLine("Prevent direct swaps: ");
-        bool preventDirectSwaps = bool.Parse(Console.ReadLine() ?? "");
+        try
+        {
+            Console.WriteLine("Check previous assignments: ");
+            check = bool.Parse(Console.ReadLine() ?? "");
 
-        var names = GetNames(namesFile);
-        var previousAssignments = GetPreviousAssignments(previousAssignmentsFile);
+            Console.WriteLine("Prevent direct swaps: ");
+            swaps = bool.Parse(Console.ReadLine() ?? "");
+        }
+        catch
+        {
+            Console.WriteLine("Please enter a valid option (true or false).");
+            Console.WriteLine("Press any key to exit.");
+            Console.ReadKey();
+            return;
+        }
+
+        Dictionary<string,List<string>>? previousAssignments = null;
+        List<List<string>> names = new();
+
+        try
+        {
+            names = GetNames(namesFile);
+            if(names.Count < 2)
+                throw new Exception("Must have at least 2 names");
+            if(check)
+                previousAssignments = GetPreviousAssignments(previousAssignmentsFile);
+            else
+                previousAssignments = null;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error: {e.Message}");
+            Console.WriteLine("Press any key to exit.");
+            Console.ReadKey();
+            return;
+        }
 
         Dictionary<string, string> assignments = new();
 
@@ -23,14 +53,19 @@ class SecretSanta
         {
             try
             {
-                assignments = Assign(names, previousAssignments, checkPreviousAssignments, preventDirectSwaps);
+                assignments = Assign(names, previousAssignments, swaps);
                 WriteAssignments(assignments, previousAssignmentsFile);
                 Console.WriteLine($"Complete! Check '{previousAssignmentsFile}' for assignments");
+                Console.WriteLine("Press any key to exit.");
+                Console.ReadKey();
                 return;
             }
             catch {}
         }
         Console.WriteLine("No valid Secret Santa assignments possible.");
+        Console.WriteLine("Press any key to exit.");
+        Console.ReadKey();
+        return;
     }
 
     // Returns a 2D list
@@ -67,7 +102,7 @@ class SecretSanta
     }
 
     // Returns a simple dictionary of assigned givers and recipients
-    static Dictionary<string, string> Assign(List<List<string>> names, Dictionary<string, List<string>> previousAssignments, bool checkPreviousAssignments, bool preventDirectSwaps)
+    static Dictionary<string, string> Assign(List<List<string>> names, Dictionary<string, List<string>>? previousAssignments, bool preventDirectSwaps)
     {
         // Flatten 2D list
         List<string> available = names.SelectMany(group => group).ToList();
@@ -87,7 +122,7 @@ class SecretSanta
                 possible.RemoveAll(name => group.Contains(name));
 
                 // Remove previously assigned names
-                if(checkPreviousAssignments)
+                if(previousAssignments != null)
                     possible.RemoveAll(name => previousAssignments.ContainsKey(giver) && previousAssignments[giver].Contains(name));
 
                 // Remove direct swaps
