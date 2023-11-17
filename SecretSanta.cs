@@ -35,8 +35,6 @@ class SecretSanta
                 throw new Exception("Must have at least 2 names");
             if(check)
                 previousAssignments = GetPreviousAssignments(previousAssignmentsFile);
-            else
-                previousAssignments = null;
         }
         catch (Exception e)
         {
