@@ -4,7 +4,7 @@ This C# program is designed to automate the process of assigning Secret Santa pa
 ## Features
 * **Flexible Participant Input**: Reads participant names from a text file.
 * **Avoids Group Assignments**: Automatically ensures that groups do not get each other as their Secret Santa, maintaining the surprise element.
-* **Previous Assignment Consideration**: Previous assignments are accounted for, and participants are ensured that they do not get the same person they had in the past.
+* **Previous Assignment Consideration**: Optional setting to prevent a participant from getting the same person they've had in the past.
 * **Reciprocal Swaps**: Optional setting to prevent reciprocal swaps between two participants (Person A gives to Person B, so Person B won't give to Person A).
 * **Randomized Assignment**: Randomized assignment of Secret Santa, adding an element of unpredictability and fun.
 * **Simple and User-Friendly**: Designed with simplicity in mind, making it easy to use even for those with no programming experience.
