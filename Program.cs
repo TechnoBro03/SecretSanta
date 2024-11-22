@@ -13,13 +13,13 @@ namespace SecretSanta
 		/// The main entry point for the application.
 		/// </summary>
 		/// <param name="args">Command line arguments.</param>
-		/// <remarks>args[0] = namesFile, args[1] = assignmentsFile, args[2] = allowReciprocal, (optional) args[3] = verboseOutput</remarks>
+		/// <remarks>args[0] = namesFile, args[1] = assignmentsFile, args[2] = checkPreviousAssignments, args[3] = allowReciprocal, (optional) args[4] = verboseOutput</remarks>
 		public static void Main(string[] args)
 		{
-			if (args.Length is not 3 and not 4)
+			if (args.Length is not 4 and not 5)
 			{
-				Console.WriteLine("Usage: <namesFile> <assignmentsFile> <allowReciprocal> [verboseOutput]");
-				Console.WriteLine("Example: names.txt previousAssignments.txt true");
+				Console.WriteLine("Usage: <namesFile> <assignmentsFile> <checkPreviousAssignments> <allowReciprocal> [verboseOutput]");
+				Console.WriteLine("Example: names.txt previousAssignments.txt true false");
 				return;
 			}
 
@@ -28,20 +28,22 @@ namespace SecretSanta
 				// Parse command line arguments
 				string namesFile = args[0];
 				string assignmentsFile = args[1];
-				bool allowReciprocal = bool.Parse(args[2]);
-				bool verboseOutput = args.Length == 4 && bool.TryParse(args[3], out bool result) && result;
+				bool checkPreviousAssignments = bool.Parse(args[2]);
+				bool allowReciprocal = bool.Parse(args[3]);
+				bool verboseOutput = args.Length == 5 && bool.TryParse(args[4], out bool result) && result;
 
 				if (verboseOutput)
 				{
 					Console.WriteLine($"Names File: {namesFile}");
 					Console.WriteLine($"Previous Assignments File: {assignmentsFile}");
+					Console.WriteLine($"Check Previous Assignments: {checkPreviousAssignments}");
 					Console.WriteLine($"Allow Reciprocal: {allowReciprocal}");
 					Console.WriteLine($"Verbose Output: {verboseOutput}");
 				}
 
 				var participants = GetParticipants(namesFile);
 				var groups = GetGroups(namesFile);
-				var previousAssignments = GetPreviousPairs(assignmentsFile);
+				var previousAssignments = checkPreviousAssignments ? GetPreviousPairs(assignmentsFile) : [];
 
 				// Shuffle the participants to ensure a random order
 				Shuffle(participants);
