@@ -50,7 +50,7 @@ namespace SecretSanta
 
 				var pairs = Pair(participants, groups, previousAssignments, allowReciprocal, verboseOutput);
 
-				WriteAssignments("assignments.txt", pairs);
+				WriteAssignments(assignmentsFile, pairs);
 
 				Console.ForegroundColor = ConsoleColor.Green;
 				Console.WriteLine($"Assignments have been generated successfully ({Path.GetFullPath(assignmentsFile)})");
