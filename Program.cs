@@ -19,7 +19,7 @@ namespace SecretSanta
 			if (args.Length is not 4 and not 5)
 			{
 				Console.WriteLine("Usage: <namesFile> <assignmentsFile> <checkPreviousAssignments> <allowReciprocal> [verboseOutput]");
-				Console.WriteLine("Example: names.txt previousAssignments.txt true false");
+				Console.WriteLine("Example: names.txt assignments.txt true false");
 				return;
 			}
 
@@ -34,32 +34,87 @@ namespace SecretSanta
 
 				if (verboseOutput)
 				{
-					Console.WriteLine($"Names File: {namesFile}");
-					Console.WriteLine($"Previous Assignments File: {assignmentsFile}");
-					Console.WriteLine($"Check Previous Assignments: {checkPreviousAssignments}");
+					Console.WriteLine($"\nNames File:       {namesFile}");
+					Console.WriteLine($"Assignments File: {assignmentsFile}");
+					Console.WriteLine($"Check Previous:   {checkPreviousAssignments}");
 					Console.WriteLine($"Allow Reciprocal: {allowReciprocal}");
-					Console.WriteLine($"Verbose Output: {verboseOutput}");
+					Console.WriteLine($"Verbose Output:   {verboseOutput}\n");
 				}
 
 				var participants = GetParticipants(namesFile);
 				var groups = GetGroups(namesFile);
 				var previousAssignments = checkPreviousAssignments ? GetPreviousPairs(assignmentsFile) : [];
 
-				// Shuffle the participants to ensure a random order
-				Shuffle(participants);
+				List<(string, string)> pairs = [];
+				string? formattedPairs = null;
 
-				var pairs = Pair(participants, groups, previousAssignments, allowReciprocal, verboseOutput);
+				while (true)
+				{
+					// Shuffle the participants to ensure a random order
+					Shuffle(participants);
 
-				WriteAssignments(assignmentsFile, pairs);
+					// Pair the participants
+					pairs = Pair(participants, groups, previousAssignments, allowReciprocal, verboseOutput);
+
+					formattedPairs = FormatPairs(pairs);
+
+					Console.WriteLine($"\n{formattedPairs}");
+
+					Console.Write("Would you like to save these assignments? (Y/N) ");
+
+					while (true)
+					{
+						ConsoleKeyInfo key = Console.ReadKey();
+
+						if (key.Key == ConsoleKey.Y)
+						{
+							Console.SetCursorPosition(Console.CursorLeft - 7, Console.CursorTop);
+							Console.ForegroundColor = ConsoleColor.Green;
+							Console.WriteLine("Yes      ");
+							Console.ResetColor();
+							break;
+						}
+
+						else if (key.Key == ConsoleKey.N)
+						{
+							Console.SetCursorPosition(Console.CursorLeft - 7, Console.CursorTop);
+							Console.ForegroundColor = ConsoleColor.Green;
+							Console.WriteLine("No      ");
+							Console.ResetColor();
+
+							formattedPairs = null;
+							break;
+						}
+
+						else
+						{
+							Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+							Console.Write(" ");
+							Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+						}
+					}
+
+					if (formattedPairs != null)
+					{
+						break;
+					}
+				}
+
+
+				using StreamWriter streamWriter = new(assignmentsFile, true) { AutoFlush = true };
+				streamWriter.WriteLine(formattedPairs);
 
 				Console.ForegroundColor = ConsoleColor.Green;
-				Console.WriteLine($"Assignments have been generated successfully ({Path.GetFullPath(assignmentsFile)})");
+				Console.WriteLine($"\nAssignments have been saved successfully ({Path.GetFullPath(assignmentsFile)})");
 				Console.ResetColor();
+
+				Console.Write("\nPress any key to exit...");
+				Console.ReadKey();
 			}
 			catch (Exception ex)
 			{
 				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine(ex.Message);
+				Console.WriteLine($"\nError: {ex.Message}");
 				Console.ResetColor();
 			}
 		}
@@ -190,6 +245,9 @@ namespace SecretSanta
 				validIndex[giver] = 0;
 			}
 
+			// Formatting
+			Console.Write(verboseOutput ? "\n" : "");
+
 			// Iterate through each giver
 			for (int g = 0; g < participants.Count;)
 			{
@@ -223,7 +281,7 @@ namespace SecretSanta
 					// Print verbose output
 					if (verboseOutput)
 					{
-						Console.Write($"Giver: {giver}. Recipients: ");
+						Console.Write($"{giver.PadRight(participants.Max(s => s.Length))} -> ");
 						foreach (string rec in available.Values)
 						{
 							if (!validRecipients.Contains(rec))
@@ -273,7 +331,7 @@ namespace SecretSanta
 					// Print verbose output
 					if (verboseOutput)
 					{
-						Console.Write($"Giver: {giver}. Recipients: ");
+						Console.Write($"{giver.PadRight(participants.Max(s => s.Length))} -> ");
 						Console.ForegroundColor = ConsoleColor.Red;
 						Console.WriteLine($"{string.Join(", ", available.Values)}");
 						Console.ResetColor();
@@ -284,12 +342,10 @@ namespace SecretSanta
 			return pairings;
 		}
 
-		/// <summary>
-		/// Writes the assignments to a file.
-		/// </summary>
-		/// <param name="path">The path.</param>
-		/// <param name="assignments">A list of pairs.</param>
-		public static void WriteAssignments(string path, List<(string, string)> pairs)
+		/// <summary>Formats the pairings.</summary>
+		/// <param name="pairs">A list of pairs.</param>
+		/// <returns>A formatted string of the pairings.</returns>
+		public static string FormatPairs(List<(string, string)> pairs)
 		{
 			// Sort pairs alphabetically by giver
 			pairs = [.. pairs.OrderBy(pair => pair.Item1)];
@@ -297,11 +353,8 @@ namespace SecretSanta
 			// Get the longest length of any participant (for padding)
 			int maxLength = pairs.Max(pair => Math.Max(pair.Item1.Length, pair.Item2.Length));
 
-			using StreamWriter streamWriter = new(path, true);
-
-			// Write the formatted assignments to the file
-			streamWriter.WriteLine($"Generated on {DateTime.Now:MMMM d, yyyy 'at' h:mm tt}\n");
-			streamWriter.WriteLine($"\t{string.Join("\n\t", pairs.Select(pair => $"{pair.Item1.PadRight(maxLength)} -> {pair.Item2}"))}\n");
+			return $"Generated on {DateTime.Now:MMMM d, yyyy 'at' h:mm tt}\n" +
+				$"\n\t{string.Join("\n\t", pairs.Select(pair => $"{pair.Item1.PadRight(maxLength)} -> {pair.Item2}"))}\n";
 		}
 	}
 }
